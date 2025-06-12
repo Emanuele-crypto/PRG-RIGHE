@@ -158,25 +158,13 @@ body {
    color: #000000;
 }
 
-/* Main Grid for Cards (Screen Display) */
+/* Main Grid for Cards (2 per row) */
 .main-grid {
    display: grid;
-   grid-template-columns: repeat(4, 1fr);
-   grid-template-rows: auto auto;
+   grid-template-columns: repeat(2, 1fr);
    gap: 15px;
    margin-bottom: 20px;
-   min-height: 75vh;
 }
-
-/* Specific Card Positions in 4x2 Grid */
-.card-position-1 { grid-column: 1; grid-row: 1; }
-.card-position-2 { grid-column: 1; grid-row: 2; }
-.card-position-3 { grid-column: 2; grid-row: 1; }
-.card-position-4 { grid-column: 2; grid-row: 2; }
-.card-position-5 { grid-column: 3; grid-row: 1; }
-.card-position-6 { grid-column: 3; grid-row: 2; }
-.card-position-7 { grid-column: 4; grid-row: 1; }
-.card-position-8 { grid-column: 4; grid-row: 2; }
 
 /* Card Styling */
 .supplier-card {
@@ -185,7 +173,6 @@ body {
    border-radius: 10px;
    padding: 12px;
    min-height: 480px;
-   max-height: 480px;
    overflow-y: auto;
 }
 
@@ -195,17 +182,6 @@ body {
    border-radius: 10px;
    padding: 12px;
    min-height: 380px;
-   max-height: 380px;
-   overflow-y: auto;
-}
-
-.summary-card {
-   background-color: #fff3cd;
-   border: 2px solid #ffc107;
-   border-radius: 10px;
-   padding: 12px;
-   min-height: 380px;
-   max-height: 380px;
    overflow-y: auto;
 }
 
@@ -252,17 +228,6 @@ body {
 .dest-card-header {
    background: #007bff;
    color: #ffffff;
-   padding: 8px;
-   text-align: center;
-   font-weight: bold;
-   font-size: 18px;
-   margin: -12px -12px 12px -12px;
-   border-radius: 8px 8px 0 0;
-}
-
-.summary-card-header {
-   background: #ffc107;
-   color: #000000;
    padding: 8px;
    text-align: center;
    font-weight: bold;
@@ -544,14 +509,14 @@ body {
    body {
        margin: 8mm !important;
        background-color: white !important;
-       font-size: 12px !important; /* Adjusted for print density */
+       font-size: 10px !important;
    }
 
    .controls-section,
    .combination-section,
    .btn,
-   .totals-section, /* Hide totals section on print */
-   .main-grid, /* Hide the main card grid on print */
+   .totals-section,
+   .main-grid,
    .card-buttons,
    .remaining-qty,
    .transfer-section {
@@ -563,12 +528,21 @@ body {
        color: #ffffff !important;
        border: 2px solid #000000 !important;
        margin-bottom: 10px !important;
+       font-size: 12px !important;
+   }
+
+   .header h1 {
+       font-size: 18px !important;
+   }
+
+   .header .subtitle {
+       font-size: 16px !important;
    }
 
    .header-info {
-       display: block !important; /* Adjust header info for print */
+       display: block !important;
        text-align: left !important;
-       font-size: 14px !important;
+       font-size: 12px !important;
        margin-top: 5px !important;
    }
 
@@ -579,28 +553,29 @@ body {
    /* Show the print-specific data table */
    #print-table-container {
        display: block !important;
-       margin-top: 20px;
-       width: 100%; /* Ensure full width for table */
+       margin-top: 15px;
+       width: 100%;
    }
 
-   #print-table-container table {
+   .print-table {
        width: 100%;
        border-collapse: collapse;
-       font-size: 10px; /* Smaller font for table content */
+       font-size: 8px;
    }
 
-   #print-table-container th,
-   #print-table-container td {
+   .print-table th,
+   .print-table td {
        border: 1px solid #000;
-       padding: 3px 5px;
+       padding: 2px 4px;
        text-align: left;
        vertical-align: top;
    }
 
-   #print-table-container th {
+   .print-table th {
        background-color: #e9ecef;
        font-weight: bold;
        text-align: center;
+       font-size: 7px;
    }
 
    .print-bio-red-text {
@@ -609,19 +584,14 @@ body {
    }
 
    @page {
-       margin: 10mm;
-       size: A4 landscape; /* A4 landscape for better table fit */
+       margin: 8mm;
+       size: A4 landscape;
    }
 }
 
 /* Pagination for screen */
 .page-break {
    page-break-before: always;
-}
-
-/* Card Summary pending (visual feedback) */
-.card-summary-pending {
-   opacity: 0.7;
 }
 </style>
 </head>
@@ -634,7 +604,6 @@ body {
            <div><strong>Data:</strong> <span id="current-date"></span></div>
            <div><strong>Agrume:</strong> <span id="selected-agrume">N/D</span></div>
            <div><strong>Elementi:</strong> <span id="elements-count">0</span></div>
-           <div><strong>Pagine:</strong> <span id="pages-count">0</span></div>
        </div>
        <div style="margin-top: 8px; font-size: 16px;">
            <strong>Generato:</strong> <span id="last-revision"></span>
@@ -753,13 +722,13 @@ body {
        </div>
    </div>
 
-   <!-- Main Container for Pages (Screen Display) -->
-   <div id="pages-container">
-       <!-- Pages will be dynamically generated here -->
+   <!-- Main Container for Cards (2 per row) -->
+   <div id="cards-container" class="main-grid">
+       <!-- Cards will be dynamically generated here -->
    </div>
 
    <!-- Print-specific data table container (hidden on screen) -->
-   <div id="print-table-container"></div>
+   <div id="print-table-container" style="display: none;"></div>
 
    <!-- Supplier selection modal for destination -->
    <div id="supplier-selection-modal" class="modal-backdrop">
@@ -789,29 +758,28 @@ body {
 
 <script>
 $(document).ready(function() {
-   let fornitoriData = {}; // Stores data for each supplier card
-   let destinazioniData = {}; // Stores data for each destination card
-   let transferData = {}; // Stores transfer amounts from suppliers to destinations
-   let transferredAmounts = {}; // Stores total transferred amounts per supplier
-   let provenienzaData = {}; // Stores origin data for destination cards (which supplier they came from)
-   let combinationData = { // Stores data for combination groups (verde, azzurro, viola)
+   let fornitoriData = {};
+   let destinazioniData = {};
+   let transferData = {};
+   let transferredAmounts = {};
+   let provenienzaData = {};
+   let combinationData = {
        verde: { indexes: [], details: [], totalCombination: 0 },
        azzurro: { indexes: [], details: [], totalCombination: 0 },
        viola: { indexes: [], details: [], totalCombination: 0 }
    };
    
-   // Yields per transformation line (prima: Succo 1ª, seconda: Succo 2ª, torchiato: Torchiato)
+   // Yields per transformation line (only prima: Succo 1ª)
    const yieldsPerLine = {
-       'BOE/1100': { prima: 33, seconda: 5.0, torchiato: 6.0 },
-       'GOE EST/400': { prima: 31.60, seconda: 0, torchiato: 6.0 },
-       '400': { prima: 32.00, seconda: 0, torchiato: 6.0 },
-       'GOE EST/POLY': { prima: 30.60, seconda: 0, torchiato: 6.0 },
-       'GOE INT/POLY': { prima: 28.30, seconda: 0, torchiato: 6.0 },
-       'BIRILLATRICI': { prima: 26.60, seconda: 0, torchiato: 6.0 },
-       'GOE EST/BIRILLATRICI': { prima: 25.60, seconda: 0, torchiato: 6.0 }
+       'BOE/1100': { prima: 33 },
+       'GOE EST/400': { prima: 31.60 },
+       '400': { prima: 32.00 },
+       'GOE EST/POLY': { prima: 30.60 },
+       'GOE INT/POLY': { prima: 28.30 },
+       'BIRILLATRICI': { prima: 26.60 },
+       'GOE EST/BIRILLATRICI': { prima: 25.60 }
    };
 
-   // Variety options for each citrus type
    const varietyOptions = {
        'LIMONE': ['VERDELLO', 'FEMMINELLO', 'INTERDONATO', 'BIANCHETTO', 'MONACHELLO', 'VARIE', 'ALTRO'],
        'MANDARINO': ['TARD. DI CIACULLI', 'AVANA', 'CLEMENTINO', 'VARIE', 'ALTRO'],
@@ -820,7 +788,6 @@ $(document).ready(function() {
        'POMPELMO': ['GIALLO', 'ROSA', 'VARIE', 'ALTRO']
    };
 
-   // Initializes the application on load
    function initApp() {
        const today = new Date();
        $('#current-date').text(today.toLocaleDateString('it-IT', {
@@ -832,99 +799,18 @@ $(document).ready(function() {
        $('#data-lavorazione').val(today.toISOString().split('T')[0]);
        updateLastRevision();
        updateElementsCount();
-       initializePagesContainer(); // Setup the initial page container
    }
 
-   // Updates the last revision timestamp
    function updateLastRevision() {
        const now = new Date();
        $('#last-revision').text(now.toLocaleDateString('it-IT') + ' - ' + now.toLocaleTimeString('it-IT'));
    }
 
-   // Updates the count of elements and pages displayed
    function updateElementsCount() {
-       const count = $('.supplier-card, .destination-card, .summary-card').length; // Removed torchiato-card
+       const count = $('.supplier-card, .destination-card').length;
        $('#elements-count').text(count);
-       
-       const pages = Math.ceil(count / 8) || 1; // 8 cards per page for screen
-       $('#pages-count').text(pages);
    }
 
-   // Initializes the pages container for dynamic card placement
-   function initializePagesContainer() {
-       $('#pages-container').empty();
-       createNewPage();
-   }
-
-   // Creates a new page div for card placement
-   function createNewPage() {
-       const pageNumber = $('.main-grid').length + 1;
-       const newPage = `
-           <div class="main-grid page-${pageNumber}" data-page="${pageNumber}">
-               <!-- Cards will be inserted here dynamically -->
-           </div>
-       `;
-       $('#pages-container').append(newPage);
-       return pageNumber;
-   }
-
-   // Reorganizes cards on screen, ensuring correct positioning in the 4x2 grid
-   function reorganizeCardsWithPriority() {
-       const allCards = $('.supplier-card, .destination-card, .summary-card').detach(); // Removed torchiato-card
-       
-       const supplierCards = allCards.filter('.supplier-card');
-       const destinationCards = allCards.filter('.destination-card');
-       const summaryCards = allCards.filter('.summary-card');
-       
-       const orderedCards = [
-           ...supplierCards.toArray(),
-           ...destinationCards.toArray(),
-           ...summaryCards.toArray()
-       ];
-       
-       $('.main-grid').empty(); // Clear existing pages
-       
-       let currentPageIndex = 0;
-       let currentPositionInPage = 0;
-       
-       orderedCards.forEach((card) => {
-           if (currentPositionInPage >= 8) {
-               currentPageIndex++;
-               currentPositionInPage = 0;
-           }
-           
-           if ($('.main-grid').length <= currentPageIndex) {
-               createNewPage();
-           }
-           
-           $(card).removeClass('card-position-1 card-position-2 card-position-3 card-position-4 card-position-5 card-position-6 card-position-7 card-position-8');
-           $(card).addClass(`card-position-${currentPositionInPage + 1}`);
-           
-           $(`.main-grid[data-page="${currentPageIndex + 1}"]`).append(card);
-           
-           currentPositionInPage++;
-       });
-       
-       updateElementsCount();
-   }
-
-   // Gets the next available position for a new card on screen
-   function getNextAvailablePosition() {
-       const totalCards = $('.supplier-card, .destination-card, .summary-card').length; // Removed torchiato-card
-       const currentPageIndex = Math.floor(totalCards / 8);
-       const positionInPage = totalCards % 8;
-       
-       if (positionInPage === 0 && totalCards > 0) {
-           createNewPage();
-       }
-       
-       return {
-           pageIndex: currentPageIndex,
-           position: positionInPage + 1
-       };
-   }
-
-   // Generates a progressive supplier number
    function getNextSupplierNumber() {
        let maxSupplierNumber = 0;
        $('.supplier-card').each(function() {
@@ -936,10 +822,9 @@ $(document).ready(function() {
        return maxSupplierNumber + 1;
    }
 
-   // Generates a unique card index
    function getNextCardIndex() {
        let maxIndex = 0;
-       $('.supplier-card, .destination-card, .summary-card').each(function() { // Removed torchiato-card
+       $('.supplier-card, .destination-card').each(function() {
            const cardIndex = parseInt($(this).data('card-index')) || 0;
            if (cardIndex > maxIndex) {
                maxIndex = cardIndex;
@@ -948,7 +833,6 @@ $(document).ready(function() {
        return maxIndex + 1;
    }
 
-   // Updates the headers for destination cards (e.g., "1ª Destinazione F1")
    function updateDestinationHeaders() {
        $('.destination-card').each(function() {
            const cardIndex = $(this).data('card-index');
@@ -956,7 +840,7 @@ $(document).ready(function() {
            
            if (selectedSupplier) {
                const supplierCard = $(`.supplier-card[data-card-index="${selectedSupplier}"]`);
-               const supplierNumber = supplierCard.data('supplier-number') || selectedSupplier; // Fallback if number not set
+               const supplierNumber = supplierCard.data('supplier-number') || selectedSupplier;
                
                let destCount = 0;
                $('.destination-card').each(function() {
@@ -974,7 +858,6 @@ $(document).ready(function() {
        });
    }
 
-   // Creates a new supplier card HTML structure
    function createSupplierCard(cardIndex, supplierNumber) {
        const agrume = $('#tipo-agrume').val();
        let varietyOptionsHtml = '<option value="">Seleziona varietà</option>';
@@ -1154,7 +1037,6 @@ $(document).ready(function() {
        `;
    }
 
-   // Creates a new destination card HTML structure
    function createDestinationCard(cardIndex) {
        return `
            <div class="destination-card" data-card-index="${cardIndex}" data-card-type="destination">
@@ -1201,7 +1083,6 @@ $(document).ready(function() {
        `;
    }
 
-   // Updates data and UI for supplier cards
    window.updateSupplier = function(cardIndex) {
        const $card = $(`.supplier-card[data-card-index="${cardIndex}"]`);
        const nomeFornitore = $card.find('.nome-fornitore').val();
@@ -1221,10 +1102,9 @@ $(document).ready(function() {
        }
        
        updateBioStyle(cardIndex);
-       calculateSupplier(cardIndex); // Recalculate and save all data
+       calculateSupplier(cardIndex);
    };
 
-   // Toggles visibility for 'Altro Varieta' input
    window.toggleAltroVarieta = function(cardIndex) {
        const $card = $(`.supplier-card[data-card-index="${cardIndex}"]`);
        const varieta = $card.find('.varieta').val();
@@ -1233,10 +1113,9 @@ $(document).ready(function() {
        } else {
            $card.find('.altra-varieta').addClass('hidden-field').val('');
        }
-       calculateSupplier(cardIndex); // Recalculate and save all data
+       calculateSupplier(cardIndex);
    };
 
-   // Updates data and UI for destination cards
    window.updateDestination = function(cardIndex) {
        const $card = $(`.destination-card[data-card-index="${cardIndex}"]`);
        const destinazione = $card.find('.destinazione-select').val();
@@ -1252,10 +1131,9 @@ $(document).ready(function() {
            destinazione: destinazione === 'ALTRO' ? altraDestinazione : destinazione
        };
        updateTotals();
-       generatePrintTable(); // Update print table
+       generatePrintTable();
    };
 
-   // Updates BIO styling based on certification type
    window.updateBioStyle = function(cardIndex) {
        const $card = $(`.supplier-card[data-card-index="${cardIndex}"]`);
        const certificazioneSelect = $card.find('.certificazione');
@@ -1268,11 +1146,8 @@ $(document).ready(function() {
        }
 
        const isBio = currentCert.includes('BIO');
-
-       // Update checkbox state
        isBioCheckbox.prop('checked', isBio);
 
-       // Apply red/black to card elements
        const elementsToColor = [
            $card.find('.certificazione'),
            $card.find('.altra-certificazione'),
@@ -1301,7 +1176,6 @@ $(document).ready(function() {
            }
        });
 
-       // Also update the labels if needed for consistency (though not explicitly requested, good practice)
        const labelsToColor = $card.find('.form-label');
        labelsToColor.each(function() {
            if (isBio) {
@@ -1312,7 +1186,6 @@ $(document).ready(function() {
        });
    };
 
-   // Calculates supplier data and updates the global `fornitoriData` object
    window.calculateSupplier = function(cardIndex) {
        const $card = $(`.supplier-card[data-card-index="${cardIndex}"]`);
        const quantitaEntrata = parseFloat($card.find('.quantita-entrata').val()) || 0;
@@ -1322,7 +1195,6 @@ $(document).ready(function() {
        const giacenza = quantitaEntrata - quantitaTrasformata;
        $card.find('.giacenza').val(giacenza.toFixed(2));
 
-       // Calculate Succo 1ª based on yield
        let qSuccoPrima = 0;
        if (lineaDiTrasformazione && yieldsPerLine[lineaDiTrasformazione]) {
            const yieldPrima = yieldsPerLine[lineaDiTrasformazione].prima;
@@ -1330,7 +1202,6 @@ $(document).ready(function() {
        }
        $card.find('.q-succo-prima').val(qSuccoPrima.toFixed(2));
 
-       // Collect all data into fornitoriData
        const nomeFornitore = $card.find('.nome-fornitore').val();
        const altraFornitore = $card.find('.altro-fornitore').val();
        const certificazione = $card.find('.certificazione').val();
@@ -1360,10 +1231,9 @@ $(document).ready(function() {
        
        updateTotals();
        updateTransferRemaining(cardIndex);
-       generatePrintTable(); // Update print table
+       generatePrintTable();
    };
 
-   // Updates remaining quantity for transfer in destination cards
    window.updateTransferRemaining = function(supplierCardIndex) {
        const supplierCard = fornitoriData[supplierCardIndex];
        if (!supplierCard) return;
@@ -1371,7 +1241,6 @@ $(document).ready(function() {
        const totalPrima = supplierCard.qSuccoPrima || 0;
        let totalTransferred = 0;
 
-       // Sum up all transfers originating from this supplier
        for (const destIndex in transferData) {
            transferData[destIndex].forEach(transfer => {
                if (transfer.from === supplierCardIndex) {
@@ -1383,7 +1252,6 @@ $(document).ready(function() {
        const remaining = totalPrima - totalTransferred;
        transferredAmounts[supplierCardIndex] = totalTransferred;
 
-       // Update all destination cards that reference this supplier
        $('.destination-card').each(function() {
            const destCardIndex = $(this).data('card-index');
            if (provenienzaData[destCardIndex] === supplierCardIndex) {
@@ -1392,12 +1260,10 @@ $(document).ready(function() {
        });
    };
 
-   // Adds a new transfer row to a destination card
    window.addTransferRow = function(destCardIndex) {
        const $container = $(`.destination-card[data-card-index="${destCardIndex}"]`).find('.transfer-container');
-       const transferId = Date.now(); // Unique ID for the transfer row
+       const transferId = Date.now();
 
-       // Populate supplier options dynamically
        let supplierOptionsHtml = '<option value="">Seleziona Fornitore</option>';
        for (const sIndex in fornitoriData) {
            const supplier = fornitoriData[sIndex];
@@ -1419,7 +1285,6 @@ $(document).ready(function() {
        $container.append(newRow);
    };
 
-   // Stores or updates transfer data
    window.storeTransfer = function(destCardIndex, transferId) {
        const $row = $(`.destination-card[data-card-index="${destCardIndex}"]`).find(`.transfer-row[data-transfer-id="${transferId}"]`);
        const fromSupplierId = $row.find('.transfer-from').val();
@@ -1437,12 +1302,11 @@ $(document).ready(function() {
            transferData[destCardIndex].push({ id: transferId, from: fromSupplierId, amount: amount });
        }
        
-       updateTransferRemaining(fromSupplierId); // Update remaining for the source supplier
+       updateTransferRemaining(fromSupplierId);
        updateTotals();
-       generatePrintTable(); // Update print table
+       generatePrintTable();
    };
 
-   // Removes a transfer row
    window.removeTransferRow = function(destCardIndex, transferId) {
        const $row = $(`.destination-card[data-card-index="${destCardIndex}"]`).find(`.transfer-row[data-transfer-id="${transferId}"]`);
        const fromSupplierId = $row.find('.transfer-from').val();
@@ -1455,10 +1319,9 @@ $(document).ready(function() {
        
        updateTransferRemaining(fromSupplierId);
        updateTotals();
-       generatePrintTable(); // Update print table
+       generatePrintTable();
    };
 
-   // Updates overall totals (Entrata, Trasformata, Giacenza)
    function updateTotals() {
        let totalEntrata = 0;
        let totalTrasformata = 0;
@@ -1476,20 +1339,17 @@ $(document).ready(function() {
        $('#giacenza-totale').text(totalGiacenza.toFixed(2));
    }
 
-   // Removes a card (supplier or destination)
    window.removeCard = function(cardIndex) {
        const $card = $(`[data-card-index="${cardIndex}"]`);
        const cardType = $card.data('card-type');
 
        if (cardType === 'supplier') {
            delete fornitoriData[cardIndex];
-           // Also remove any destination cards referencing this supplier
            for (const destIndex in provenienzaData) {
                if (provenienzaData[destIndex] === cardIndex) {
-                   removeCard(parseInt(destIndex)); // Recursively remove destination card
+                   removeCard(parseInt(destIndex));
                }
            }
-           // Clean up transfer data where this supplier was the source
            for (const destIndex in transferData) {
                transferData[destIndex] = transferData[destIndex].filter(t => t.from !== cardIndex);
                if (transferData[destIndex].length === 0) {
@@ -1497,10 +1357,8 @@ $(document).ready(function() {
                }
            }
            delete transferredAmounts[cardIndex];
-           // Clean up combination data if this supplier was part of it
            for (const comboType in combinationData) {
                combinationData[comboType].indexes = combinationData[comboType].indexes.filter(idx => idx !== cardIndex);
-               // Recalculate totals for combinations
                calculateCombinationTotals(comboType);
            }
 
@@ -1508,19 +1366,17 @@ $(document).ready(function() {
            delete destinazioniData[cardIndex];
            delete transferData[cardIndex];
            delete provenienzaData[cardIndex];
-           // Recalculate remaining for any suppliers affected by removed transfers
            for (const sIndex in fornitoriData) {
                updateTransferRemaining(parseInt(sIndex));
            }
        }
 
        $card.remove();
-       reorganizeCardsWithPriority();
        updateTotals();
-       generatePrintTable(); // Update print table
+       updateElementsCount();
+       generatePrintTable();
    };
 
-   // Calculates totals for combination groups
    function calculateCombinationTotals(comboType) {
        let total = 0;
        const details = [];
@@ -1534,21 +1390,14 @@ $(document).ready(function() {
        });
        combinationData[comboType].totalCombination = total;
        combinationData[comboType].details = details;
-       
-       $(`#${comboType}-total-qty`).text(total.toFixed(2));
-       $(`#${comboType}-combination-details`).html(details.join('<br>'));
    }
 
-   // --- Event Listeners ---
-
-   // Add Supplier button click
    $('#aggiungi-fornitore').on('click', function() {
        const newCardIndex = getNextCardIndex();
        const newSupplierNumber = getNextSupplierNumber();
-       const pos = getNextAvailablePosition();
        const newCardHtml = createSupplierCard(newCardIndex, newSupplierNumber);
        
-       $(`.main-grid[data-page="${pos.pageIndex + 1}"]`).append($(newCardHtml).addClass(`card-position-${pos.position}`));
+       $('#cards-container').append(newCardHtml);
        
        fornitoriData[newCardIndex] = {
            nomeFornitore: "", quantitaEntrata: 0, quantitaTrasformata: 0, giacenza: 0,
@@ -1559,15 +1408,13 @@ $(document).ready(function() {
        
        updateElementsCount();
        updateTotals();
-       generatePrintTable(); // Update print table
+       generatePrintTable();
    });
 
-   // Add Destination button click
    $('#aggiungi-destinazione').on('click', function() {
        const supplierCardIds = Object.keys(fornitoriData).filter(idx => fornitoriData[idx].qSuccoPrima > 0);
        
        if (supplierCardIds.length === 0) {
-           // Use a custom modal or message box instead of alert
            showCustomMessage('Nessun fornitore disponibile con Succo 1ª da trasferire.', 'info');
            return;
        }
@@ -1583,7 +1430,6 @@ $(document).ready(function() {
        $('#supplier-selection-modal').show();
    });
 
-   // Confirm supplier selection for destination
    $('#confirm-supplier-selection').on('click', function() {
        const selectedSupplierId = $('#supplier-select').val();
        if (!selectedSupplierId) {
@@ -1594,29 +1440,24 @@ $(document).ready(function() {
        $('#supplier-selection-modal').hide();
 
        const newCardIndex = getNextCardIndex();
-       const pos = getNextAvailablePosition();
        const newCardHtml = createDestinationCard(newCardIndex);
        
-       $(`.main-grid[data-page="${pos.pageIndex + 1}"]`).append($(newCardHtml).addClass(`card-position-${pos.position}`));
+       $('#cards-container').append(newCardHtml);
        
-       // Store the selected supplier for this destination card
        $(`.destination-card[data-card-index="${newCardIndex}"]`).data('selected-supplier', parseInt(selectedSupplierId));
        provenienzaData[newCardIndex] = parseInt(selectedSupplierId);
 
-       // Update the destination header and remaining quantity for the newly added card
        updateDestinationHeaders();
        updateTransferRemaining(parseInt(selectedSupplierId));
        updateElementsCount();
        updateTotals();
-       generatePrintTable(); // Update print table
+       generatePrintTable();
    });
 
-   // Cancel supplier selection for destination
    $('#cancel-supplier-selection').on('click', function() {
        $('#supplier-selection-modal').hide();
    });
 
-   // Save File
    $('#salva-file').on('click', function() {
        const appData = {
            fornitoriData: fornitoriData,
@@ -1640,7 +1481,6 @@ $(document).ready(function() {
        showSaveStatus('Dati salvati con successo!', false);
    });
 
-   // Load File
    $('#carica-file').on('click', function() {
        $('#file-input').click();
    });
@@ -1663,13 +1503,11 @@ $(document).ready(function() {
        }
    });
 
-   // Print Button
    $('#print-button').on('click', function() {
-       generatePrintTable(); // Generate the print table before printing
+       generatePrintTable();
        window.print();
    });
 
-   // Reset All
    $('#reset-tutto').on('click', function() {
        if (confirm('Sei sicuro di voler resettare tutto? Tutti i dati non salvati verranno persi.')) {
            fornitoriData = {};
@@ -1682,24 +1520,22 @@ $(document).ready(function() {
                azzurro: { indexes: [], details: [], totalCombination: 0 },
                viola: { indexes: [], details: [], totalCombination: 0 }
            };
-           $('#pages-container').empty();
+           $('#cards-container').empty();
            $('#tipo-agrume').val('');
            $('#data-lavorazione').val(new Date().toISOString().split('T')[0]);
            $('#selected-agrume').text('N/D');
            $('#combinazioni-section').addClass('hidden-field');
-           initApp(); // Reinitialize app elements
+           initApp();
            updateTotals();
-           generatePrintTable(); // Clear print table
+           generatePrintTable();
            showSaveStatus('Applicazione resettata.', false);
        }
    });
 
-   // Handle Agrume selection
    $('#tipo-agrume').on('change', function() {
        const selectedAgrume = $(this).val();
        $('#selected-agrume').text(selectedAgrume || 'N/D');
 
-       // Update variety options for existing supplier cards
        $('.supplier-card').each(function() {
            const cardIndex = $(this).data('card-index');
            const $varietaSelect = $(this).find('.varieta');
@@ -1709,10 +1545,9 @@ $(document).ready(function() {
                    $varietaSelect.append(`<option value="${variety}">${variety}</option>`);
                });
            }
-           // Restore previously selected variety if it exists in the new options
            if (fornitoriData[cardIndex] && fornitoriData[cardIndex].varieta) {
                $varietaSelect.val(fornitoriData[cardIndex].varieta);
-               toggleAltroVarieta(cardIndex); // Re-evaluate 'ALTRO' field visibility
+               toggleAltroVarieta(cardIndex);
            }
        });
 
@@ -1723,7 +1558,6 @@ $(document).ready(function() {
        }
    });
 
-   // Load data into the application
    function loadData(data) {
        fornitoriData = data.fornitoriData || {};
        destinazioniData = data.destinazioniData || {};
@@ -1735,44 +1569,39 @@ $(document).ready(function() {
            viola: { indexes: [], details: [], totalCombination: 0 }
        };
 
-       $('#tipo-agrume').val(data.selectedAgrume || '').trigger('change'); // Trigger change to update varieties
+       $('#tipo-agrume').val(data.selectedAgrume || '').trigger('change');
        $('#data-lavorazione').val(data.dataLavorazione || new Date().toISOString().split('T')[0]);
        
-       $('#pages-container').empty(); // Clear existing cards before loading
+       $('#cards-container').empty();
 
-       // Recreate supplier cards first
        const loadedCardIndexes = new Set([...Object.keys(fornitoriData), ...Object.keys(destinazioniData), ...Object.keys(combinationData)]);
        const sortedIndexes = Array.from(loadedCardIndexes).sort((a, b) => parseInt(a) - parseInt(b));
 
        sortedIndexes.forEach(cardIndex => {
             if (fornitoriData[cardIndex]) {
-                const pos = getNextAvailablePosition();
-                const newSupplierNumber = $(`.supplier-card[data-card-index="${cardIndex}"]`).data('supplier-number') || getNextSupplierNumber(); // Try to get existing number, otherwise new
+                const newSupplierNumber = $(`.supplier-card[data-card-index="${cardIndex}"]`).data('supplier-number') || getNextSupplierNumber();
                 const newCardHtml = createSupplierCard(cardIndex, newSupplierNumber);
-                $(`.main-grid[data-page="${pos.pageIndex + 1}"]`).append($(newCardHtml).addClass(`card-position-${pos.position}`));
+                $('#cards-container').append(newCardHtml);
             }
         });
 
-        // Then recreate destination cards
         sortedIndexes.forEach(cardIndex => {
             if (destinazioniData[cardIndex]) {
-                const pos = getNextAvailablePosition();
                 const newCardHtml = createDestinationCard(cardIndex);
-                $(`.main-grid[data-page="${pos.pageIndex + 1}"]`).append($(newCardHtml).addClass(`card-position-${pos.position}`));
+                $('#cards-container').append(newCardHtml);
             }
         });
 
-       // Populate card fields and trigger calculations/updates
        for (const index in fornitoriData) {
            const $card = $(`.supplier-card[data-card-index="${index}"]`);
            const data = fornitoriData[index];
-           $card.find('.nome-fornitore').val(data.nomeFornitore).trigger('change'); // Trigger change for ALTRO handling
+           $card.find('.nome-fornitore').val(data.nomeFornitore).trigger('change');
            if (data.nomeFornitore === 'ALTRO' && data.altraFornitore) $card.find('.altro-fornitore').val(data.altraFornitore);
            $card.find('.quantita-entrata').val(data.quantitaEntrata);
            $card.find('.quantita-trasformata').val(data.quantitaTrasformata);
-           $card.find('.certificazione').val(data.certificazione).trigger('change'); // Trigger change for ALTRO handling and BIO style
+           $card.find('.certificazione').val(data.certificazione).trigger('change');
            if (data.certificazione === 'ALTRO' && data.altraCertificazione) $card.find('.altra-certificazione').val(data.altraCertificazione);
-           $card.find('.varieta').val(data.varieta).trigger('change'); // Trigger change for ALTRO handling
+           $card.find('.varieta').val(data.varieta).trigger('change');
            if (data.varieta === 'ALTRO' && data.altraVarieta) $card.find('.altra-varieta').val(data.altraVarieta);
            $card.find('.linea-di-trasformazione').val(data.lineaDiTrasformazione);
            $card.find('.portata').val(data.portata);
@@ -1784,7 +1613,7 @@ $(document).ready(function() {
            $card.find('.is-pastorizzato').prop('checked', data.isPastorizzato);
            $card.find('.is-conservato').prop('checked', data.isConservato);
            $card.find('.note').val(data.note);
-           calculateSupplier(index); // Ensure all calculations and styles are applied
+           calculateSupplier(index);
        }
 
        for (const index in destinazioniData) {
@@ -1798,10 +1627,9 @@ $(document).ready(function() {
                $card.find('.provenienza-info').removeClass('hidden-field').find('.provenienza-text').text(`Fornitore ${$(`.supplier-card[data-card-index="${provenienzaData[index]}"]`).data('supplier-number') || 'N/D'}`);
            }
 
-           // Re-add transfer rows
            if (transferData[index]) {
                transferData[index].forEach(transfer => {
-                   addTransferRow(index); // Add the row structure
+                   addTransferRow(index);
                    const $newRow = $card.find(`.transfer-row[data-transfer-id="${transfer.id}"]`);
                    $newRow.find('.transfer-from').val(transfer.from);
                    $newRow.find('.transfer-amount').val(transfer.amount);
@@ -1809,11 +1637,10 @@ $(document).ready(function() {
            }
        }
 
-       reorganizeCardsWithPriority();
        updateDestinationHeaders();
        updateTotals();
+       updateElementsCount();
 
-       // Update combination selects and totals
        for (const comboType in combinationData) {
            const $select = $(`#combinazione-fornitori-${comboType}`);
            $select.empty().append('<option value="">Seleziona combinazione</option>');
@@ -1826,10 +1653,9 @@ $(document).ready(function() {
            });
            calculateCombinationTotals(comboType);
        }
-       generatePrintTable(); // Generate print table after loading all data
+       generatePrintTable();
    }
 
-   // Shows a temporary status message
    function showSaveStatus(message, isError) {
        const $saveStatus = $('#save-status');
        const $saveMessage = $('#save-message');
@@ -1838,7 +1664,6 @@ $(document).ready(function() {
        $saveStatus.fadeIn().delay(3000).fadeOut();
    }
 
-   // --- Custom Message Box (instead of alert/confirm) ---
    function showCustomMessage(message, type = 'info', callback = null) {
        const modalHtml = `
            <div id="custom-message-modal" class="modal-backdrop">
@@ -1864,10 +1689,9 @@ $(document).ready(function() {
        });
    }
 
-    // --- New function to generate the print-specific table ---
     function generatePrintTable() {
         let tableHtml = `
-            <table class="print-data-table">
+            <table class="print-table">
                 <thead>
                     <tr>
                         <th>LINEA DI TRASF.</th>
@@ -1893,7 +1717,6 @@ $(document).ready(function() {
                 <tbody>
         `;
 
-        // Sort supplier cards by their original supplier number for consistent print order
         const sortedSupplierIndexes = Object.keys(fornitoriData).sort((a, b) => {
             const numA = $(`.supplier-card[data-card-index="${a}"]`).data('supplier-number') || 0;
             const numB = $(`.supplier-card[data-card-index="${b}"]`).data('supplier-number') || 0;
@@ -1902,13 +1725,11 @@ $(document).ready(function() {
 
         sortedSupplierIndexes.forEach(cardIndex => {
             const data = fornitoriData[cardIndex];
-            if (!data) return; // Skip if data somehow missing
+            if (!data) return;
 
-            // Determine if BIO for coloring
             const isBio = (data.certificazione && data.certificazione.includes('BIO')) || data.isBio;
             const bioClass = isBio ? 'print-bio-red-text' : '';
 
-            // Aggregate destination info for this supplier
             let destinationsForSupplier = [];
             for (const destCardIndex in transferData) {
                 if (transferData[destCardIndex]) {
@@ -1956,8 +1777,6 @@ $(document).ready(function() {
         $('#print-table-container').html(tableHtml);
     }
 
-
-   // Initial app setup
    initApp();
 });
 </script>
